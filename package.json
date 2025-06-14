@@ -12,11 +12,15 @@
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "i18next": "^25.2.1",
     "lucide-react": "^0.513.0",
     "next": "15.3.3",
+    "next-i18next": "^15.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.3.0"
+    "react-i18next": "^15.5.2",
+    "tailwind-merge": "^3.3.0",
+    "zod": "^3.25.53"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

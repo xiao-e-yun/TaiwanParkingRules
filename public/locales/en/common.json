@@ -1,0 +1,22 @@
+{
+  "appName": "Ghost Island Parking Rules",
+  "navigation": {
+    "home": "Home",
+    "search": "Find Parking",
+    "settings": "Settings",
+    "contact": "Contact Us"
+  },
+  "buttons": {
+    "search": "Search",
+    "clear": "Clear",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "noResults": "No results found",
+    "retry": "Retry"
+  }
+}

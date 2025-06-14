@@ -1,0 +1,56 @@
+{
+  "title": "聯絡我們",
+  "subtitle": "有任何問題或建議？我們很樂意聽到您的聲音",
+  "sections": {
+    "contact": {
+      "title": "聯絡資訊",
+      "email": "電子郵件",
+      "phone": "電話",
+      "address": "地址",
+      "hours": "服務時間"
+    },
+    "form": {
+      "title": "發送訊息",
+      "name": "姓名",
+      "namePlaceholder": "請輸入您的姓名",
+      "email": "電子郵件",
+      "emailPlaceholder": "請輸入您的電子郵件",
+      "subject": "主旨",
+      "subjectPlaceholder": "請輸入主旨",
+      "message": "訊息內容",
+      "messagePlaceholder": "請詳細描述您的問題或建議...",
+      "submit": "發送訊息"
+    },
+    "faq": {
+      "title": "常見問題",
+      "questions": {
+        "q1": {
+          "question": "停車資料多久更新一次？",
+          "answer": "我們的停車資料每5分鐘從TDX運輸資料平台更新一次，確保您獲得最即時的停車位資訊。"
+        },
+        "q2": {
+          "question": "支援哪些城市的停車資訊？",
+          "answer": "目前支援台北市、台中市、高雄市、台南市、桃園市和新竹市的停車資訊，未來將陸續增加更多城市。"
+        },
+        "q3": {
+          "question": "如何回報停車場資訊錯誤？",
+          "answer": "如果您發現停車場資訊有誤，請透過聯絡表單告知我們，我們會盡快處理並更正資料。"
+        },
+        "q4": {
+          "question": "應用程式是否收費？",
+          "answer": "鬼島停車守則完全免費使用，我們致力於為台灣駕駛提供最好的停車資訊服務。"
+        }
+      }
+    }
+  },
+  "info": {
+    "email": "xiaoeyun@ghost-parking.tw",
+    "phone": "+886-9-1234-5678",
+    "address": "台北市信義區市府路1號",
+    "hours": "週一至週五 09:00-18:00"
+  },
+  "messages": {
+    "success": "訊息已成功發送，我們會盡快回覆您！",
+    "error": "發送失敗，請稍後再試或直接寄信至我們的信箱。"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "hero": {
+    "title": "Finding Parking in Taiwan is No Longer a Nightmare!",
+    "subtitle": "Use real-time data to easily find the nearest parking spots",
+    "cta": "Start Finding Parking Now"
+  },
+  "features": {
+    "title": "Why Choose Ghost Island Parking Rules?",
+    "realtime": {
+      "title": "Real-time Parking Information",
+      "description": "Get the latest parking availability through TDX transport data"
+    },
+    "smart": {
+      "title": "Smart Filtering Features",
+      "description": "Avoid traffic hotspots and find parking within your budget"
+    },
+    "local": {
+      "title": "Local Parking Insights",
+      "description": "Familiar with Taiwan's parking culture, providing the most practical advice"
+    }
+  },
+  "stats": {
+    "title": "Helping Taiwan Drivers - By the Numbers",
+    "parkingSpots": "Partner Parking Lots",
+    "cities": "Cities Covered",
+    "users": "Satisfied Users"
+  }
+}

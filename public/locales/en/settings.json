@@ -1,0 +1,38 @@
+{
+  "title": "Settings",
+  "subtitle": "Customize your parking preferences",
+  "sections": {
+    "preferences": {
+      "title": "Preferences",
+      "preferredDistance": "Preferred Search Distance",
+      "maxPrice": "Maximum Acceptable Price",
+      "avoidLowSpace": "Avoid Low-Space Parking Lots",
+      "preferCovered": "Prefer Covered Parking",
+      "notifications": "Push Notifications"
+    },
+    "language": {
+      "title": "Language Settings",
+      "currentLanguage": "Current Language",
+      "selectLanguage": "Select Language"
+    },
+    "about": {
+      "title": "About App",
+      "version": "Version",
+      "description": "Ghost Island Parking Rules is dedicated to solving Taiwan's parking challenges by helping drivers find the best parking spots through real-time data."
+    }
+  },
+  "form": {
+    "distanceUnit": "km",
+    "priceUnit": "NT$/hour",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "languages": {
+    "zh-TW": "繁體中文",
+    "en": "English"
+  },
+  "messages": {
+    "saved": "Settings saved",
+    "error": "Failed to save settings, please try again"
+  }
+}

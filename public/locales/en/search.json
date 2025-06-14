@@ -1,0 +1,49 @@
+{
+  "title": "Find Parking",
+  "subtitle": "Enter your destination and we'll help you find the best parking options",
+  "form": {
+    "city": "City",
+    "cityPlaceholder": "Select city",
+    "location": "Location or Address",
+    "locationPlaceholder": "Enter destination",
+    "maxDistance": "Search Range (km)",
+    "maxPrice": "Max Price (NT$/hour)",
+    "parkingType": "Parking Type",
+    "availability": "Availability"
+  },
+  "options": {
+    "cities": {
+      "taipei": "Taipei City",
+      "taichung": "Taichung City",
+      "kaohsiung": "Kaohsiung City",
+      "tainan": "Tainan City",
+      "taoyuan": "Taoyuan City",
+      "hsinchu": "Hsinchu City"
+    },
+    "parkingTypes": {
+      "car": "Car",
+      "scooter": "Scooter",
+      "both": "Both"
+    },
+    "availability": {
+      "any": "Any",
+      "available": "Available",
+      "few": "Few spots"
+    }
+  },
+  "results": {
+    "title": "Search Results",
+    "noResults": "No parking spots found matching your criteria",
+    "loading": "Searching...",
+    "distance": "Distance",
+    "price": "Price",
+    "available": "Available",
+    "total": "Total spots",
+    "updated": "Updated"
+  },
+  "filters": {
+    "title": "Filters",
+    "clear": "Clear filters",
+    "apply": "Apply filters"
+  }
+}

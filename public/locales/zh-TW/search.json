@@ -1,0 +1,49 @@
+{
+  "title": "尋找停車位",
+  "subtitle": "輸入您的目的地，我們幫您找到最佳停車選擇",
+  "form": {
+    "city": "城市",
+    "cityPlaceholder": "選擇城市",
+    "location": "地點或地址",
+    "locationPlaceholder": "輸入目的地",
+    "maxDistance": "搜尋範圍 (公里)",
+    "maxPrice": "最高價格 (NT$/小時)",
+    "parkingType": "停車類型",
+    "availability": "空位狀況"
+  },
+  "options": {
+    "cities": {
+      "taipei": "台北市",
+      "taichung": "台中市",
+      "kaohsiung": "高雄市",
+      "tainan": "台南市",
+      "taoyuan": "桃園市",
+      "hsinchu": "新竹市"
+    },
+    "parkingTypes": {
+      "car": "汽車",
+      "scooter": "機車",
+      "both": "汽機車皆可"
+    },
+    "availability": {
+      "any": "任何狀況",
+      "available": "有空位",
+      "few": "少量空位"
+    }
+  },
+  "results": {
+    "title": "搜尋結果",
+    "noResults": "找不到符合條件的停車位",
+    "loading": "搜尋中...",
+    "distance": "距離",
+    "price": "價格",
+    "available": "可用空位",
+    "total": "總車位",
+    "updated": "更新時間"
+  },
+  "filters": {
+    "title": "篩選條件",
+    "clear": "清除篩選",
+    "apply": "套用篩選"
+  }
+}

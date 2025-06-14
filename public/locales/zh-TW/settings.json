@@ -1,0 +1,38 @@
+{
+  "title": "設定",
+  "subtitle": "自訂您的停車偏好設定",
+  "sections": {
+    "preferences": {
+      "title": "偏好設定",
+      "preferredDistance": "偏好搜尋距離",
+      "maxPrice": "最高可接受價格",
+      "avoidLowSpace": "避開低空位停車場",
+      "preferCovered": "偏好有遮蔽的停車位",
+      "notifications": "推播通知"
+    },
+    "language": {
+      "title": "語言設定",
+      "currentLanguage": "目前語言",
+      "selectLanguage": "選擇語言"
+    },
+    "about": {
+      "title": "關於應用程式",
+      "version": "版本",
+      "description": "鬼島停車守則致力於解決台灣停車難題，透過即時資料幫助駕駛找到最佳停車位。"
+    }
+  },
+  "form": {
+    "distanceUnit": "公里",
+    "priceUnit": "NT$/小時",
+    "enabled": "開啟",
+    "disabled": "關閉"
+  },
+  "languages": {
+    "zh-TW": "繁體中文",
+    "en": "English"
+  },
+  "messages": {
+    "saved": "設定已儲存",
+    "error": "儲存失敗，請稍後再試"
+  }
+}

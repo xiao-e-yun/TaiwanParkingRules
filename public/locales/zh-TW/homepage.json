@@ -1,0 +1,28 @@
+{
+  "hero": {
+    "title": "在鬼島找停車位不再是惡夢!",
+    "subtitle": "運用即時資料，輕鬆找到最近的停車位",
+    "cta": "立即開始找車位"
+  },
+  "features": {
+    "title": "為什麼選擇鬼島停車守則?",
+    "realtime": {
+      "title": "即時停車位資訊",
+      "description": "透過 TDX 運輸資料，提供最新的停車位狀況"
+    },
+    "smart": {
+      "title": "智慧篩選功能",
+      "description": "避開塞車熱點，找到符合您預算的停車位"
+    },
+    "local": {
+      "title": "在地停車秘笈",
+      "description": "熟悉台灣各地停車文化，提供最實用的建議"
+    }
+  },
+  "stats": {
+    "title": "幫助台灣駕駛的數據",
+    "parkingSpots": "合作停車場",
+    "cities": "涵蓋城市",
+    "users": "滿意用戶"
+  }
+}

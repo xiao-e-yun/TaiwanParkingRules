@@ -1,0 +1,22 @@
+{
+  "appName": "鬼島停車守則",
+  "navigation": {
+    "home": "首頁",
+    "search": "找車位",
+    "settings": "設定",
+    "contact": "聯絡我們"
+  },
+  "buttons": {
+    "search": "搜尋",
+    "clear": "清除",
+    "save": "儲存",
+    "cancel": "取消",
+    "submit": "送出"
+  },
+  "common": {
+    "loading": "載入中...",
+    "error": "發生錯誤",
+    "noResults": "找不到結果",
+    "retry": "重試"
+  }
+}

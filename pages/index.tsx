@@ -14,7 +14,6 @@ import {
   Building, 
   MapIcon,
   ArrowRight,
-  CheckCircle 
 } from 'lucide-react';
 
 const Home: React.FC = () => {
@@ -39,9 +38,9 @@ const Home: React.FC = () => {
   ];
 
   const stats = [
-    { icon: Building, value: '500+', label: t('homepage:stats.parkingSpots') },
-    { icon: MapIcon, value: '6', label: t('homepage:stats.cities') },
-    { icon: Users, value: '10K+', label: t('homepage:stats.users') },
+    { icon: Building, value: '800+', label: t('homepage:stats.parkingSpots') },
+    { icon: MapIcon, value: '12', label: t('homepage:stats.cities') },
+    { icon: Users, value: '1', label: t('homepage:stats.users') },
   ];
 
   return (

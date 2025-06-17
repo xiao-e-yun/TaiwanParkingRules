@@ -1,76 +1,157 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { ParkingSearchSchema } from '@/lib/schemas';
-
-// Mock TDX parking data
-const mockParkingData = [
-  {
-    ParkingLotID: 'TP001',
-    ParkingLotName: '台北車站地下停車場',
-    TotalSpaces: 200,
-    AvailableSpaces: 45,
-    Coordinate: { Latitude: 25.0478, Longitude: 121.5171 },
-    Address: '台北市中正區北平西路3號',
-    Description: '24小時營業，有電動車充電站',
-    PayGuide: 'NT$40/小時，當日最高NT$200',
-    UpdateTime: new Date().toISOString(),
-  },
-  {
-    ParkingLotID: 'TP002',
-    ParkingLotName: '信義威秀停車場',
-    TotalSpaces: 150,
-    AvailableSpaces: 12,
-    Coordinate: { Latitude: 25.0360, Longitude: 121.5645 },
-    Address: '台北市信義區松壽路20號',
-    Description: '購物中心停車場，有遮蔽',
-    PayGuide: 'NT$60/小時，消費滿額可享優惠',
-    UpdateTime: new Date().toISOString(),
-  },
-  {
-    ParkingLotID: 'TP003',
-    ParkingLotName: '西門町停車場',
-    TotalSpaces: 120,
-    AvailableSpaces: 68,
-    Coordinate: { Latitude: 25.0421, Longitude: 121.5067 },
-    Address: '台北市萬華區成都路10號',
-    Description: '近西門紅樓，步行商圈方便',
-    PayGuide: 'NT$30/小時，夜間優惠價NT$20',
-    UpdateTime: new Date().toISOString(),
-  },
-  {
-    ParkingLotID: 'TC001',
-    ParkingLotName: '台中火車站停車場',
-    TotalSpaces: 180,
-    AvailableSpaces: 32,
-    Coordinate: { Latitude: 24.1367, Longitude: 120.6851 },
-    Address: '台中市中區台灣大道一段1號',
-    Description: '火車站旁，交通便利',
-    PayGuide: 'NT$25/小時，當日最高NT$150',
-    UpdateTime: new Date().toISOString(),
-  },
-  {
-    ParkingLotID: 'KH001',
-    ParkingLotName: '高雄夢時代停車場',
-    TotalSpaces: 300,
-    AvailableSpaces: 89,
-    Coordinate: { Latitude: 22.5926, Longitude: 120.3059 },
-    Address: '高雄市前鎮區中華五路789號',
-    Description: '大型購物中心，有冷氣空調',
-    PayGuide: 'NT$35/小時，消費可享折抵',
-    UpdateTime: new Date().toISOString(),
-  }
-];
+import type {NextApiRequest, NextApiResponse} from 'next';
+import {City, ParkingSearchSchema} from '@/lib/schemas';
+import {env} from 'process';
+import _ from 'lodash';
+import {int} from 'zod/v4';
 
 // Calculate distance between two coordinates (Haversine formula)
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Earth's radius in kilometers
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
+}
+
+const carParkData = new Map() as Map<string, {
+  carParkName: {
+    zh_tw: string,
+    en: string
+  },
+  telephone: string,
+  location: {
+    latitude: number,
+    longitude: number
+  },
+  description: string,
+  address: string,
+  imageURL?: string,
+}>
+
+let expiredAt = 0;
+let accessToken: string | null = null;
+async function getAccessToken():Promise<string> {
+  const now = Date.now();
+  if (accessToken && now < expiredAt) {
+    return accessToken;
+  }
+
+  const response = await fetch('https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      'client_id': env.TDX_CLIENT_ID || '',
+      'client_secret': env.TDX_CLIENT_SECRET || '',
+      'grant_type': 'client_credentials',
+    }),
+  })
+  const data = await (response).json()
+
+  if (!data.access_token) {
+    throw new Error('Failed to get access token from TDX');
+  }
+
+  expiredAt = now + (data.expires_in * 1000) - 60000; // 1 minute before expiration
+  return accessToken = data.access_token;
+}
+
+
+const loadedCities = new Set<City>();
+async function loadMockCarParkData(city: City) {
+  if (loadedCities.has(city)) return
+
+  console.log(`Loading mock car park data for ${city}...`);
+
+  const token = await getAccessToken();
+  const response = await fetch(`https://tdx.transportdata.tw/api/basic/v1/Parking/OffStreet/CarPark/City/${city}?&%24format=JSON`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+    },
+  })
+  const data = (await response.json()).CarParks;
+  loadedCities.add(city);
+
+  for (const carPark of data) {
+    carParkData.set(`${city}-${carPark.CarParkID}`, {
+      carParkName: {
+        zh_tw: carPark.CarParkName.Zh_tw,
+        en: carPark.CarParkName.En,
+      },
+      telephone: carPark.Telephone || carPark.EmergencyPhone || '',
+      description: carPark.Description || '',
+      location: {
+        latitude: carPark.CarParkPosition.PositionLat,
+        longitude: carPark.CarParkPosition.PositionLon,
+      },
+      address: carPark.Address || '',
+      imageURL: (carPark.ImageURLs || [])[0],
+    });
+  }
+}
+
+function getMockCarParkData(city: City, id: string) {
+  return carParkData.get(`${city}-${id}`);
+}
+
+const carParkCache = new Map<City, {
+  expiredAt: number;
+  values: {
+    CarParkID: string;
+    CarParkName: {
+      Zh_tw: string;
+      En: string;
+    };
+    Availabilities: {
+      SpaceType: number;
+      NumberOfSpaces: number;
+      AvailableSpaces: number;
+    }[];
+  }[]
+}>()
+
+async function getAvailableCarParks(city: City) {
+  if (carParkCache.has(city)) {
+    const cache = carParkCache.get(city)!;
+    if (cache.expiredAt > Date.now()) {
+      return cache.values;
+    }
+  }
+
+  console.log(`Fetching parking availability for ${city} from TDX API...`);
+  const token = await getAccessToken();
+  const response = await fetch("https://tdx.transportdata.tw/api/basic/v1/Parking/OffStreet/ParkingAvailability/City/" + city + "?%24format=JSON", {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+    },
+  })
+
+  const values = (await response.json()).ParkingAvailabilities;
+  carParkCache.set(city, {
+    expiredAt: Date.now() + 60000, // Cache for 1 minutes
+    values: values.map((lot: any) => ({
+      CarParkID: lot.CarParkID,
+      CarParkName: {
+        Zh_tw: lot.CarParkName.Zh_tw,
+        En: lot.CarParkName.En,
+      },
+      Availabilities: lot.Availabilities.map((avail: any) => ({
+        SpaceType: avail.SpaceType,
+        NumberOfSpaces: avail.NumberOfSpaces,
+        AvailableSpaces: avail.AvailableSpaces,
+      })),
+    })),
+  });
+
+  return carParkCache.get(city)!.values;
+
 }
 
 export default async function handler(
@@ -78,72 +159,77 @@ export default async function handler(
   res: NextApiResponse
 ) {
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({error: 'Method not allowed'});
   }
 
   try {
-    // Validate query parameters
-    const searchParams = {
+
+    const data = await getAvailableCarParks(req.query.city as City);
+
+    const params = ParkingSearchSchema.parse({
       city: req.query.city as string,
-      location: req.query.location as string || '',
-      maxDistance: Number(req.query.maxDistance) || 10,
-      maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
-      parkingType: req.query.parkingType as string || 'car',
-      availability: req.query.availability as string || 'any',
-    };
-
-    const validatedParams = ParkingSearchSchema.parse(searchParams);
-
-    // City coordinates for reference (simplified)
-    const cityCoordinates: Record<string, { lat: number; lng: number }> = {
-      taipei: { lat: 25.0330, lng: 121.5654 },
-      taichung: { lat: 24.1477, lng: 120.6736 },
-      kaohsiung: { lat: 22.6273, lng: 120.3014 },
-      tainan: { lat: 22.9999, lng: 120.2269 },
-      taoyuan: { lat: 24.9936, lng: 121.3010 },
-      hsinchu: { lat: 24.8138, lng: 120.9675 },
-    };
-
-    const cityCoord = cityCoordinates[validatedParams.city];
-    if (!cityCoord) {
-      return res.status(400).json({ error: 'Unsupported city' });
-    }
-
-    // Filter parking lots by city (simplified - based on city prefix)
-    let filteredLots = mockParkingData.filter(lot => {
-      const cityPrefix = validatedParams.city === 'taipei' ? 'TP' :
-                        validatedParams.city === 'taichung' ? 'TC' :
-                        validatedParams.city === 'kaohsiung' ? 'KH' : 'TP';
-      return lot.ParkingLotID.startsWith(cityPrefix);
+      parkingType: req.query.parkingType as string,
+      availability: req.query.availability as string,
+      location: req.query.latitude && req.query.longitude ? {
+        latitude: parseFloat(req.query.latitude as string),
+        longitude: parseFloat(req.query.longitude as string),
+      } : undefined,
     });
 
-    // Calculate distances and filter by maxDistance
-    const lotsWithDistance = filteredLots.map(lot => {
-      const distance = calculateDistance(
-        cityCoord.lat, cityCoord.lng,
-        lot.Coordinate.Latitude, lot.Coordinate.Longitude
-      );
-      return { ...lot, distance: Math.round(distance * 10) / 10 };
-    }).filter(lot => lot.distance <= validatedParams.maxDistance);
 
-    // Filter by availability
-    if (validatedParams.availability === 'available') {
-      lotsWithDistance.filter(lot => lot.AvailableSpaces > 10);
-    } else if (validatedParams.availability === 'few') {
-      lotsWithDistance.filter(lot => lot.AvailableSpaces <= 10 && lot.AvailableSpaces > 0);
+    const spaceTypeMapping = {
+      "Car": 1,
+      "Scooter": 2,
+      "Heavy": 5,
+    };
+
+    const availableSpaceTypes = {
+      "Any": 0,
+      "Few": 3,
+      "Many": 5,
+      "Available": 1,
     }
 
-    // Sort by distance
-    lotsWithDistance.sort((a, b) => a.distance - b.distance);
+    await loadMockCarParkData(params.city);
+    const result = _.chain(data)
+      .filter((lot) => {
+        return lot.Availabilities.some(avail => {
+          const spaceType = spaceTypeMapping[params.parkingType];
+          const availability = availableSpaceTypes[params.availability];
+          return avail.SpaceType === spaceType && avail.AvailableSpaces >= availability;
+        })
+      })
+      .map(lot => {
+        const carPark = getMockCarParkData(params.city, lot.CarParkID);
+        const available = lot.Availabilities.find(avail => avail.SpaceType === spaceTypeMapping[params.parkingType])!;
 
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+        return {
+          carParkName: {
+            zh_tw: lot.CarParkName.Zh_tw,
+            en: lot.CarParkName.En,
+          },
+          totalSpaces: available?.NumberOfSpaces || 0,
+          availableSpaces: available?.AvailableSpaces || 0,
+          location: carPark?.location || { latitude: 0, longitude: 0 },
+          address: carPark?.address || '',
+          telephone: carPark?.telephone || '',
+          imageURL: carPark?.imageURL || '',
+          description: carPark?.description || '',
+          distance: params.location && calculateDistance(params.location.latitude, params.location.longitude, carPark?.location.latitude || 0, carPark?.location.longitude || 0),
+        };
+      })
+      .sort((lotA, lotB) => {
+        if (params.location && lotA.distance !== undefined && lotB.distance !== undefined) {
+          return lotA.distance - lotB.distance;
+        }
+        // otherwise sort by available spaces
+        return lotB.availableSpaces - lotA.availableSpaces;
+      })
+      .value();
 
     res.status(200).json({
       success: true,
-      data: lotsWithDistance,
-      total: lotsWithDistance.length,
-      timestamp: new Date().toISOString(),
+      data: result,
     });
 
   } catch (error) {

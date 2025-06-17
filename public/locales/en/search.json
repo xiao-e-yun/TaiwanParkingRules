@@ -14,21 +14,38 @@
   "options": {
     "cities": {
       "taipei": "Taipei City",
-      "taichung": "Taichung City",
-      "kaohsiung": "Kaohsiung City",
-      "tainan": "Tainan City",
+      "newtaipei": "New Taipei City",
       "taoyuan": "Taoyuan City",
-      "hsinchu": "Hsinchu City"
+      "taichung": "Taichung City",
+      "tainan": "Tainan City",
+      "kaohsiung": "Kaohsiung City",
+      "keelung": "Keelung City",
+      "hsinchu": "Hsinchu City",
+      "hsinchucounty": "Hsinchu County",
+      "miaolicounty": "Miaoli County",
+      "changhuacounty": "Changhua County",
+      "nantoucounty": "Nantou County",
+      "yunlincounty": "Yunlin County",
+      "chiayicounty": "Chiayi County",
+      "chiayi": "Chiayi City",
+      "pingtungcounty": "Pingtung County",
+      "yilancounty": "Yilan County",
+      "hualiencounty": "Hualien County",
+      "taitungcounty": "Taitung County",
+      "kinmencounty": "Kinmen County",
+      "penghucounty": "Penghu County",
+      "lienchiangcounty": "Lienchiang County"
     },
     "parkingTypes": {
       "car": "Car",
-      "scooter": "Scooter",
-      "both": "Both"
+      "heavy": "Heavy Vehicle",
+      "scooter": "Scooter"
     },
     "availability": {
       "any": "Any",
       "available": "Available",
-      "few": "Few spots"
+      "few": "Few Spots",
+      "many": "Many Spots"
     }
   },
   "results": {

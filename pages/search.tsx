@@ -1,102 +1,142 @@
-import React, { useState } from 'react';
-import { GetStaticProps } from 'next';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import React, {useEffect, useState} from 'react';
+import {GetStaticProps} from 'next';
+import {useTranslation} from 'next-i18next';
+import {serverSideTranslations} from 'next-i18next/serverSideTranslations';
 import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  MapPin, 
-  Search, 
-  Filter,
+import {Button} from '@/components/ui/button';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {
+  MapPin,
+  Search,
   Clock,
-  DollarSign,
   Navigation,
-  Car,
-  AlertCircle
+  AlertCircle,
+  Phone
 } from 'lucide-react';
-import { ParkingSearchSchema, type ParkingSearchInput } from '@/lib/schemas';
+import {City, ParkingAvailability, ParkingSearchSchema, ParkingType, type ParkingSearchInput} from '@/lib/schemas';
 
 interface ParkingLot {
-  id: string;
-  name: string;
-  address: string;
-  distance: number;
-  availableSpaces: number;
-  totalSpaces: number;
-  price: number;
-  updatedAt: string;
+  carParkName: {
+    zh_tw: string;
+    en: string;
+  },
+  totalSpaces: number,
+  availableSpaces: number,
+  location: {latitude: number, longitude: number},
+  address: string,
+  telephone: string,
+  imageURL: string,
+  distance: number,
+  description: string,
 }
 
+const cityCoordinates = [
+  [City.Taipei, {"latitude": 25.0330, "longitude": 121.5654}],
+  [City.Taoyuan, {"latitude": 24.9937, "longitude": 121.3036}],
+  [City.Taichung, {"latitude": 24.1477, "longitude": 120.6736}],
+  [City.Tainan, {"latitude": 22.9960, "longitude": 120.2152}],
+  [City.Kaohsiung, {"latitude": 22.6273, "longitude": 120.3014}],
+  [City.Keelung, {"latitude": 25.1291, "longitude": 121.7468}],
+  [City.ChanghuaCounty, {"latitude": 24.5644, "longitude": 120.8206}],
+  [City.YunlinCounty, {"latitude": 23.9155, "longitude": 120.6871}],
+  [City.PingtungCounty, {"latitude": 22.6726, "longitude": 120.4878}],
+  [City.YilanCounty, {"latitude": 24.7560, "longitude": 121.7549}],
+  [City.HualienCounty, {"latitude": 23.9764, "longitude": 121.6099}],
+  [City.KinmenCounty, {"latitude": 23.5685, "longitude": 119.5768}],
+] as [City, {latitude: number; longitude: number}][];
+
 const SearchPage: React.FC = () => {
-  const { t } = useTranslation(['search', 'common']);
+  const {t} = useTranslation(['search', 'common']);
   const [searchForm, setSearchForm] = useState<ParkingSearchInput>({
-    city: '',
-    location: '',
-    maxDistance: 5,
-    parkingType: 'car',
-    availability: 'any'
+    city: City.Taipei,
+    parkingType: ParkingType.Car,
+    availability: ParkingAvailability.Available,
   });
+
+  useEffect(() => {
+    if (navigator.geolocation)
+      navigator.geolocation.getCurrentPosition((currentPosition) => {
+        const latitude = currentPosition.coords.latitude;
+        const longitude = currentPosition.coords.longitude;
+
+        setSearchForm(prev => ({
+          ...prev,
+          city: cityCoordinates.toSorted(([, a], [, b]) => {
+            const distA = Math.sqrt(Math.pow(a.latitude - latitude, 2) + Math.pow(a.longitude - longitude, 2));
+            const distB = Math.sqrt(Math.pow(b.latitude - latitude, 2) + Math.pow(b.longitude - longitude, 2));
+            return distA - distB;
+          })[0][0],
+
+          location: {
+            latitude,
+            longitude
+          }
+        }));
+      }, () => console.warn('Geolocation is not supported by this browser.'));
+  }, [])
+
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<ParkingLot[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
 
   const cities = [
-    { value: 'taipei', label: t('search:options.cities.taipei') },
-    { value: 'taichung', label: t('search:options.cities.taichung') },
-    { value: 'kaohsiung', label: t('search:options.cities.kaohsiung') },
-    { value: 'tainan', label: t('search:options.cities.tainan') },
-    { value: 'taoyuan', label: t('search:options.cities.taoyuan') },
-    { value: 'hsinchu', label: t('search:options.cities.hsinchu') },
+    {value: City.Taipei, label: t('search:options.cities.taipei')},
+    {value: City.Taoyuan, label: t('search:options.cities.taoyuan')},
+    {value: City.Taichung, label: t('search:options.cities.taichung')},
+    {value: City.Tainan, label: t('search:options.cities.tainan')},
+    {value: City.Kaohsiung, label: t('search:options.cities.kaohsiung')},
+    {value: City.Keelung, label: t('search:options.cities.keelung')},
+    {value: City.ChanghuaCounty, label: t('search:options.cities.changhuacounty')},
+    {value: City.YunlinCounty, label: t('search:options.cities.yunlincounty')},
+    {value: City.PingtungCounty, label: t('search:options.cities.pingtungcounty')},
+    {value: City.YilanCounty, label: t('search:options.cities.yilancounty')},
+    {value: City.HualienCounty, label: t('search:options.cities.hualiencounty')},
+    {value: City.KinmenCounty, label: t('search:options.cities.kinmencounty')},
   ];
 
   const parkingTypes = [
-    { value: 'car', label: t('search:options.parkingTypes.car') },
-    { value: 'scooter', label: t('search:options.parkingTypes.scooter') },
-    { value: 'both', label: t('search:options.parkingTypes.both') },
+    {value: ParkingType.Car, label: t('search:options.parkingTypes.car')},
+    {value: ParkingType.Heavy, label: t('search:options.parkingTypes.heavy')},
+    {value: ParkingType.Scooter, label: t('search:options.parkingTypes.scooter')},
   ];
 
   const availabilityOptions = [
-    { value: 'any', label: t('search:options.availability.any') },
-    { value: 'available', label: t('search:options.availability.available') },
-    { value: 'few', label: t('search:options.availability.few') },
+    {value: ParkingAvailability.Any, label: t('search:options.availability.any')},
+    {value: ParkingAvailability.Available, label: t('search:options.availability.available')},
+    {value: ParkingAvailability.Many, label: t('search:options.availability.many')},
+    {value: ParkingAvailability.Few, label: t('search:options.availability.few')},
   ];
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const validatedData = ParkingSearchSchema.parse(searchForm);
       setIsSearching(true);
       setHasSearched(true);
 
-      // Call our API endpoint
-      const queryParams = new URLSearchParams({
+      const params = {
         city: validatedData.city,
-        location: validatedData.location || '',
-        maxDistance: validatedData.maxDistance.toString(),
         parkingType: validatedData.parkingType,
         availability: validatedData.availability,
-        ...(validatedData.maxPrice && { maxPrice: validatedData.maxPrice.toString() })
-      });
+        latitude: validatedData.location?.latitude.toString(),
+        longitude: validatedData.location?.longitude.toString(),
+      } as Record<string, string>;
+      if (!params.latitude || !params.longitude) {
+        delete params.latitude;
+        delete params.longitude;
+      }
 
-      const response = await fetch(`/api/parking/search?${queryParams}`);
-      const result = await response.json();
+      const response = await fetch(`/api/parking/search?${new URLSearchParams(params).toString()}`)
+
+      const result: {
+        success: boolean;
+        data?: []
+        error?: string;
+      } = await response.json();
 
       if (result.success) {
-        // Transform API response to our component format
-        const transformedResults: ParkingLot[] = result.data.map((lot: any) => ({
-          id: lot.ParkingLotID,
-          name: lot.ParkingLotName,
-          address: lot.Address,
-          distance: lot.distance,
-          availableSpaces: lot.AvailableSpaces,
-          totalSpaces: lot.TotalSpaces,
-          price: parseInt(lot.PayGuide.match(/NT\$(\d+)/)?.[1] || '40'),
-          updatedAt: lot.UpdateTime
-        }));
-        
-        setSearchResults(transformedResults);
+        setSearchResults(result.data!)
       } else {
         console.error('API Error:', result.error);
         setSearchResults([]);
@@ -107,13 +147,6 @@ const SearchPage: React.FC = () => {
     } finally {
       setIsSearching(false);
     }
-  };
-
-  const formatTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString('zh-TW', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   return (
@@ -149,7 +182,7 @@ const SearchPage: React.FC = () => {
                       </label>
                       <select
                         value={searchForm.city}
-                        onChange={(e) => setSearchForm(prev => ({ ...prev, city: e.target.value }))}
+                        onChange={(e) => setSearchForm(prev => ({...prev, city: e.target.value as City}))}
                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                         required
                       >
@@ -162,35 +195,6 @@ const SearchPage: React.FC = () => {
                       </select>
                     </div>
 
-                    {/* Location */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t('search:form.location')}
-                      </label>
-                      <input
-                        type="text"
-                        value={searchForm.location}
-                        onChange={(e) => setSearchForm(prev => ({ ...prev, location: e.target.value }))}
-                        placeholder={t('search:form.locationPlaceholder')}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-
-                    {/* Distance Range */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t('search:form.maxDistance')}: {searchForm.maxDistance}km
-                      </label>
-                      <input
-                        type="range"
-                        min="1"
-                        max="20"
-                        value={searchForm.maxDistance}
-                        onChange={(e) => setSearchForm(prev => ({ ...prev, maxDistance: Number(e.target.value) }))}
-                        className="w-full"
-                      />
-                    </div>
-
                     {/* Parking Type */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -198,7 +202,7 @@ const SearchPage: React.FC = () => {
                       </label>
                       <select
                         value={searchForm.parkingType}
-                        onChange={(e) => setSearchForm(prev => ({ ...prev, parkingType: e.target.value as any }))}
+                        onChange={(e) => setSearchForm(prev => ({...prev, parkingType: e.target.value as any}))}
                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                       >
                         {parkingTypes.map(type => (
@@ -216,7 +220,7 @@ const SearchPage: React.FC = () => {
                       </label>
                       <select
                         value={searchForm.availability}
-                        onChange={(e) => setSearchForm(prev => ({ ...prev, availability: e.target.value as any }))}
+                        onChange={(e) => setSearchForm(prev => ({...prev, availability: e.target.value as any}))}
                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                       >
                         {availabilityOptions.map(option => (
@@ -228,9 +232,9 @@ const SearchPage: React.FC = () => {
                     </div>
 
                     {/* Search Button */}
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
+                    <Button
+                      type="submit"
+                      className="w-full"
                       disabled={isSearching || !searchForm.city}
                     >
                       {isSearching ? (
@@ -257,7 +261,7 @@ const SearchPage: React.FC = () => {
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
                     {t('search:results.title')}
                   </h2>
-                  
+
                   {isSearching ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -273,40 +277,43 @@ const SearchPage: React.FC = () => {
                   ) : (
                     <div className="space-y-4">
                       {searchResults.map((lot) => (
-                        <Card key={lot.id} className="hover:shadow-lg transition-shadow">
-                          <CardContent className="p-6">
+                        <Card key={lot.carParkName.zh_tw} className="hover:shadow-lg transition-shadow">
+                          <CardContent className="p-6 bg-cover" style={{backgroundImage: `url(${lot.imageURL})`}} >
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                  {lot.name}
+                                <h3 className="text-lg font-semibold text-gray-900 mb-2 flex justify-between w-full">
+                                  {lot.carParkName.zh_tw} {lot.carParkName.en && `(${lot.carParkName.en})`}
+                                  <div className={`font-medium ${lot.availableSpaces > 5 ? 'text-green-600' : lot.availableSpaces > 3 ? 'text-yellow-600' : 'text-red-600'}`}>
+                                    {lot.availableSpaces} {t('search:results.available')}
+                                  </div>
                                 </h3>
                                 <div className="space-y-2 text-sm text-gray-600">
                                   <div className="flex items-center">
                                     <MapPin className="h-4 w-4 mr-2" />
                                     {lot.address}
                                   </div>
-                                  <div className="flex items-center">
-                                    <Navigation className="h-4 w-4 mr-2" />
-                                    {t('search:results.distance')}: {lot.distance}km
-                                  </div>
-                                  <div className="flex items-center">
-                                    <Clock className="h-4 w-4 mr-2" />
-                                    {t('search:results.updated')}: {formatTime(lot.updatedAt)}
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="text-right ml-4">
-                                <div className="text-2xl font-bold text-blue-600 mb-1">
-                                  NT${lot.price}/hr
-                                </div>
-                                <div className="text-sm text-gray-600">
-                                  <div className={`font-medium ${
-                                    lot.availableSpaces > 20 ? 'text-green-600' : 
-                                    lot.availableSpaces > 5 ? 'text-yellow-600' : 'text-red-600'
-                                  }`}>
-                                    {lot.availableSpaces}/{lot.totalSpaces} {t('search:results.available')}
-                                  </div>
+                                  {
+                                    lot.distance && (
+                                      <div className="flex items-center">
+                                        <Navigation className="h-4 w-4 mr-2" />
+                                        {t('search:results.distance')}: {lot.distance}km
+                                      </div>
+                                    )
+                                  }
+                                  {
+                                    lot.telephone && (
+                                      <div className="flex items-center">
+                                        <Phone className="h-4 w-4 mr-2" />
+                                        {lot.telephone}
+                                      </div>
+                                    )
+                                  }
+                                  {
+                                    lot.description && (
+                                      <div className="text-gray-500">
+                                        {lot.description}
+                                      </div>
+                                    )}
                                 </div>
                               </div>
                             </div>
@@ -325,7 +332,7 @@ const SearchPage: React.FC = () => {
   );
 };
 
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
+export const getStaticProps: GetStaticProps = async ({locale}) => {
   return {
     props: {
       ...(await serverSideTranslations(locale!, ['common', 'search'])),

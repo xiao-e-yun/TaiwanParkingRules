@@ -29,7 +29,7 @@ const ContactPage: React.FC = () => {
     message: ''
   });
 
-  const [formErrors, setFormErrors] = useState<Record<string,string>>([]);
+  const [formErrors, setFormErrors] = useState<Record<string,string>>({});
   
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
@@ -124,6 +124,7 @@ const ContactPage: React.FC = () => {
     if (error) return (<Alert variant="destructive" className="mt-2">
         <AlertTitle>{t('contact:messages.validationError')}</AlertTitle>
         <AlertDescription>
+          {error}
         </AlertDescription>
       </Alert>)
 };
@@ -200,7 +201,7 @@ const ContactPage: React.FC = () => {
                       required
                       className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
-                    {}
+                    { error(formErrors.name) }
                       
                   </div>
 
@@ -217,6 +218,7 @@ const ContactPage: React.FC = () => {
                       required
                       className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
+                    { error(formErrors.email) }
                   </div>
 
                   {/* Subject */}
@@ -232,6 +234,7 @@ const ContactPage: React.FC = () => {
                       required
                       className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
+                    { error(formErrors.subject) }
                   </div>
 
                   {/* Message */}
@@ -247,6 +250,7 @@ const ContactPage: React.FC = () => {
                       rows={5}
                       className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
+                    { error(formErrors.message) }
                   </div>
 
                   {/* Submit Button */}

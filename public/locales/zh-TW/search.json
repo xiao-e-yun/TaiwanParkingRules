@@ -14,21 +14,38 @@
   "options": {
     "cities": {
       "taipei": "台北市",
-      "taichung": "台中市",
-      "kaohsiung": "高雄市",
-      "tainan": "台南市",
+      "newtaipei": "新北市",
       "taoyuan": "桃園市",
-      "hsinchu": "新竹市"
+      "taichung": "台中市",
+      "tainan": "台南市",
+      "kaohsiung": "高雄市",
+      "keelung": "基隆市",
+      "hsinchu": "新竹市",
+      "hsinchucounty": "新竹縣",
+      "miaolicounty": "苗栗縣",
+      "changhuacounty": "彰化縣",
+      "nantoucounty": "南投縣",
+      "yunlincounty": "雲林縣",
+      "chiayicounty": "嘉義縣",
+      "chiayi": "嘉義市",
+      "pingtungcounty": "屏東縣",
+      "yilancounty": "宜蘭縣",
+      "hualiencounty": "花蓮縣",
+      "taitungcounty": "台東縣",
+      "kinmencounty": "金門縣",
+      "penghucounty": "澎湖縣",
+      "lienchiangcounty": "連江縣"
     },
     "parkingTypes": {
       "car": "汽車",
-      "scooter": "機車",
-      "both": "汽機車皆可"
+      "heavy": "重型車輛",
+      "scooter": "機車"
     },
     "availability": {
-      "any": "任何狀況",
-      "available": "有空位",
-      "few": "少量空位"
+      "any": "任何",
+      "available": "有",
+      "few": "少量",
+      "many": "大量"
     }
   },
   "results": {

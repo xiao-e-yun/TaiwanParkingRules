@@ -3,7 +3,7 @@
 # Introduction
 Finding Parking in Taiwan is No Longer a Nightmare!
 
-![Homepage Screenshot](/preview/homepage.png)
+![Homepage Screenshot](/preview/home.png)
 ![Search Screenshot](/preview/search.png)
 ![Contact Screenshot](/preview/contact.png)
 

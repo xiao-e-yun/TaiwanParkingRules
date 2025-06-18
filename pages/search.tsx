@@ -305,7 +305,7 @@ const SearchPage: React.FC = () => {
                                     lot.distance && (
                                       <div className="flex items-center">
                                         <Navigation className="h-4 w-4 mr-2" />
-                                        {t('search:results.distance')}: {lot.distance}km
+                                        {t('search:results.distance')}: {lot.distance.toFixed(1)}km
                                       </div>
                                     )
                                   }

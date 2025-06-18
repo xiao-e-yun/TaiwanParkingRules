@@ -1,27 +1,31 @@
-import React, { useState } from 'react';
-import { GetStaticProps } from 'next';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import React, {useState} from 'react';
+import {GetStaticProps} from 'next';
+import {useTranslation} from 'next-i18next';
+import {serverSideTranslations} from 'next-i18next/serverSideTranslations';
 import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
+import {Button} from '@/components/ui/button';
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert"
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {
+  Mail,
+  Phone,
+  MapPin,
   Clock,
   Send,
   CheckCircle,
   AlertCircle,
   MessageSquare,
-  HelpCircle
+  HelpCircle,
+  UserRoundCog,
+  UserRoundPen,
+  UserRoundSearch,
+  UsersRound
 } from 'lucide-react';
-import { ContactFormSchema, type ContactFormInput } from '@/lib/schemas';
+import {ContactFormSchema, type ContactFormInput} from '@/lib/schemas';
 
 const ContactPage: React.FC = () => {
-  const { t } = useTranslation(['contact', 'common']);
-  
+  const {t} = useTranslation(['contact', 'common']);
+
   const [formData, setFormData] = useState<ContactFormInput>({
     name: '',
     email: '',
@@ -29,32 +33,32 @@ const ContactPage: React.FC = () => {
     message: ''
   });
 
-  const [formErrors, setFormErrors] = useState<Record<string,string>>({});
-  
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [expandedFaq, setExpandedFaq] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const validatedData = ContactFormSchema.safeParse(formData);
 
       if (!validatedData.success) {
-        setFormErrors(Object.fromEntries(validatedData.error.errors.map(err => [err.path,err.message])));
+        setFormErrors(Object.fromEntries(validatedData.error.errors.map(err => [err.path, err.message])));
         console.error('Form validation errors:', validatedData.error.errors);
         return
       }
 
       setSubmitStatus('sending');
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // Reset form and show success
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      setFormData({name: '', email: '', subject: '', message: ''});
       setSubmitStatus('sent');
-      
+
       // Reset status after 5 seconds
       setTimeout(() => setSubmitStatus('idle'), 5000);
     } catch (error) {
@@ -67,7 +71,7 @@ const ContactPage: React.FC = () => {
   const handleInputChange = (field: keyof ContactFormInput) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    setFormData(prev => ({...prev, [field]: e.target.value}));
   };
 
   const contactInfo = [
@@ -120,14 +124,14 @@ const ContactPage: React.FC = () => {
     }
   ];
 
-  const error = (error?: string)=> {
+  const error = (error?: string) => {
     if (error) return (<Alert variant="destructive" className="mt-2">
-        <AlertTitle>{t('contact:messages.validationError')}</AlertTitle>
-        <AlertDescription>
-          {error}
-        </AlertDescription>
-      </Alert>)
-};
+      <AlertTitle>{t('contact:messages.validationError')}</AlertTitle>
+      <AlertDescription>
+        {error}
+      </AlertDescription>
+    </Alert>)
+  };
 
   return (
     <Layout title={t('contact:title')}>
@@ -201,8 +205,8 @@ const ContactPage: React.FC = () => {
                       required
                       className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
-                    { error(formErrors.name) }
-                      
+                    {error(formErrors.name)}
+
                   </div>
 
                   {/* Email */}
@@ -218,7 +222,7 @@ const ContactPage: React.FC = () => {
                       required
                       className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
-                    { error(formErrors.email) }
+                    {error(formErrors.email)}
                   </div>
 
                   {/* Subject */}
@@ -234,7 +238,7 @@ const ContactPage: React.FC = () => {
                       required
                       className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
-                    { error(formErrors.subject) }
+                    {error(formErrors.subject)}
                   </div>
 
                   {/* Message */}
@@ -250,7 +254,7 @@ const ContactPage: React.FC = () => {
                       rows={5}
                       className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
-                    { error(formErrors.message) }
+                    {error(formErrors.message)}
                   </div>
 
                   {/* Submit Button */}
@@ -284,50 +288,77 @@ const ContactPage: React.FC = () => {
                 </form>
               </CardContent>
             </Card>
+
+            {/* FAQ Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <HelpCircle className="h-5 w-5 mr-2" />
+                  {t('contact:sections.faq.title')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {faqItems.map((item) => (
+                    <div key={item.id} className="border border-gray-200 rounded-lg">
+                      <button
+                        onClick={() => setExpandedFaq(expandedFaq === item.id ? null : item.id)}
+                        className="w-full p-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
+                      >
+                        <span className="font-medium text-gray-900">{item.question}</span>
+                        <div className={`transform transition-transform ${expandedFaq === item.id ? 'rotate-180' : ''
+                          }`}>
+                          <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </button>
+                      {expandedFaq === item.id && (
+                        <div className="p-4 pt-0 text-gray-600 leading-relaxed">
+                          {item.answer}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* About us */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <UsersRound className="h-5 w-5 mr-2" />
+                  {t('contact:sections.about.title')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {([
+                  ["張瑞賢", UserRoundCog, "xiao-e-yun"],
+                  ["于廷", UserRoundPen, "Yuting7071"],
+                  ["楊竣永", UserRoundSearch, "yong7533"]
+                ] as const).map(([name, Icon, profile], index) => {
+                  return (
+                    <a href={`https://github.com/${profile}`} target="_blank" rel="noopener noreferrer" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                      <Icon className="h-8 w-8 text-blue-600 mt-0.5" />
+                      <div>
+                        <div className="font-medium text-gray-900">{name}</div>
+                        <span className="text-gray-600">@{profile}</span>
+                      </div>
+                    </a>
+                  );
+                })}
+              </CardContent>
+            </Card>
           </div>
 
-          {/* FAQ Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <HelpCircle className="h-5 w-5 mr-2" />
-                {t('contact:sections.faq.title')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {faqItems.map((item) => (
-                  <div key={item.id} className="border border-gray-200 rounded-lg">
-                    <button
-                      onClick={() => setExpandedFaq(expandedFaq === item.id ? null : item.id)}
-                      className="w-full p-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
-                    >
-                      <span className="font-medium text-gray-900">{item.question}</span>
-                      <div className={`transform transition-transform ${
-                        expandedFaq === item.id ? 'rotate-180' : ''
-                      }`}>
-                        <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                    </button>
-                    {expandedFaq === item.id && (
-                      <div className="p-4 pt-0 text-gray-600 leading-relaxed">
-                        {item.answer}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </Layout>
   );
 };
 
-export const getStaticProps: GetStaticProps = async ({ locale }) => {
+export const getStaticProps: GetStaticProps = async ({locale}) => {
   return {
     props: {
       ...(await serverSideTranslations(locale!, ['common', 'contact'])),

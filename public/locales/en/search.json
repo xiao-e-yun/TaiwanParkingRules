@@ -56,7 +56,8 @@
     "price": "Price",
     "available": "Available",
     "total": "Total spots",
-    "updated": "Updated"
+    "updated": "Updated",
+    "navigation": "Navigate"
   },
   "filters": {
     "title": "Filters",

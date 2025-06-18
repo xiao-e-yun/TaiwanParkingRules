@@ -56,7 +56,8 @@
     "price": "價格",
     "available": "可用空位",
     "total": "總車位",
-    "updated": "更新時間"
+    "updated": "更新時間",
+    "navigation": "導航"
   },
   "filters": {
     "title": "篩選條件",

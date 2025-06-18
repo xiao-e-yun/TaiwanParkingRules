@@ -291,6 +291,13 @@ const SearchPage: React.FC = () => {
                                   <div className="flex items-center">
                                     <MapPin className="h-4 w-4 mr-2" />
                                     {lot.address}
+
+                                    <Button className="ml-auto text-xs text-secondary" variant="outline" size="sm" asChild>
+                                    <a href={`https://www.google.com/maps/dir/?api=1&destination=${lot.location.latitude},${lot.location.longitude}`} target="_blank" rel="noopener noreferrer">
+                                      <Navigation className="h-4 w-4 mr-1" />
+                                      {t('search:results.navigation')}
+                                    </a>
+                                    </Button>
                                   </div>
                                   {
                                     lot.distance && (

@@ -2,7 +2,6 @@ import type {NextApiRequest, NextApiResponse} from 'next';
 import {City, ParkingSearchSchema} from '@/lib/schemas';
 import {env} from 'process';
 import _ from 'lodash';
-import {int} from 'zod/v4';
 
 // Calculate distance between two coordinates (Haversine formula)
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -19,7 +18,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 
 const carParkData = new Map() as Map<string, {
   carParkName: {
-    zh_tw: string,
+    "zh-TW": string,
     en: string
   },
   telephone: string,
@@ -81,7 +80,7 @@ async function loadMockCarParkData(city: City) {
   for (const carPark of data) {
     carParkData.set(`${city}-${carPark.CarParkID}`, {
       carParkName: {
-        zh_tw: carPark.CarParkName.Zh_tw,
+        "zh-TW": carPark.CarParkName.Zh_tw,
         en: carPark.CarParkName.En,
       },
       telephone: carPark.Telephone || carPark.EmergencyPhone || '',
@@ -205,7 +204,7 @@ export default async function handler(
 
         return {
           carParkName: {
-            zh_tw: lot.CarParkName.Zh_tw,
+            "zh-TW": lot.CarParkName.Zh_tw,
             en: lot.CarParkName.En,
           },
           totalSpaces: available?.NumberOfSpaces || 0,

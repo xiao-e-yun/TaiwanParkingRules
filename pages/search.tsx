@@ -14,10 +14,12 @@ import {
   Phone
 } from 'lucide-react';
 import {City, ParkingAvailability, ParkingSearchSchema, ParkingType, type ParkingSearchInput} from '@/lib/schemas';
+import i18next from 'i18next';
+import {useRouter} from 'next/router';
 
 interface ParkingLot {
   carParkName: {
-    zh_tw: string;
+    "zh-TW": string;
     en: string;
   },
   totalSpaces: number,
@@ -149,6 +151,8 @@ const SearchPage: React.FC = () => {
     }
   };
 
+  const language = useRouter().locale || "zh-TW";
+
   return (
     <Layout title={t('search:title')}>
       <div className="min-h-screen bg-gray-50 py-8">
@@ -277,12 +281,12 @@ const SearchPage: React.FC = () => {
                   ) : (
                     <div className="space-y-4">
                       {searchResults.map((lot) => (
-                        <Card key={lot.carParkName.zh_tw} className="hover:shadow-lg transition-shadow">
+                        <Card key={lot.carParkName["zh-TW"]} className="hover:shadow-lg transition-shadow">
                           <CardContent className="p-6 bg-cover" style={{backgroundImage: `url(${lot.imageURL})`}} >
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
                                 <h3 className="text-lg font-semibold text-gray-900 mb-2 flex justify-between w-full">
-                                  {lot.carParkName.zh_tw} {lot.carParkName.en && `(${lot.carParkName.en})`}
+                                  { lot.carParkName[language as "zh-TW" | "en"] || lot.carParkName["zh-TW"] }
                                   <div className={`font-medium ${lot.availableSpaces > 5 ? 'text-green-600' : lot.availableSpaces > 3 ? 'text-yellow-600' : 'text-red-600'}`}>
                                     {lot.availableSpaces} {t('search:results.available')}
                                   </div>

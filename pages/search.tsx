@@ -8,13 +8,11 @@ import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {
   MapPin,
   Search,
-  Clock,
   Navigation,
   AlertCircle,
   Phone
 } from 'lucide-react';
 import {City, ParkingAvailability, ParkingSearchSchema, ParkingType, type ParkingSearchInput} from '@/lib/schemas';
-import i18next from 'i18next';
 import {useRouter} from 'next/router';
 
 interface ParkingLot {

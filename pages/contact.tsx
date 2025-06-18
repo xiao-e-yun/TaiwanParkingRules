@@ -335,7 +335,7 @@ const ContactPage: React.FC = () => {
               <CardContent className="space-y-2">
                 {([
                   ["張瑞賢", UserRoundCog, "xiao-e-yun"],
-                  ["于廷", UserRoundPen, "Yuting7071"],
+                  ["林于廷", UserRoundPen, "Yuting7071"],
                   ["楊竣永", UserRoundSearch, "yong7533"]
                 ] as const).map(([name, Icon, profile], index) => {
                   return (

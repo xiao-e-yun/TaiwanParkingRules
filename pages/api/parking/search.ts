@@ -63,9 +63,76 @@ async function getAccessToken():Promise<string> {
 }
 
 
+// Cloudflare edge Cache API helpers. The edge cache is shared across isolates
+// (unlike module-level memory) and is free / zero-maintenance. On some Pages
+// environments `caches.default` may be a no-op, so every caller falls back to
+// re-fetching when a read misses.
+function getEdgeCache(): Cache | null {
+  try {
+    // @ts-expect-error - caches.default is a Cloudflare runtime extension
+    return (typeof caches !== 'undefined' && caches.default) || null;
+  } catch {
+    return null;
+  }
+}
+
+// Synthetic cache keys must be a full URL. We only cache GETs of these keys.
+function edgeCacheKey(kind: string, city: City): Request {
+  return new Request(`https://cache.internal/parking/${kind}/${city}`);
+}
+
+async function readEdgeCache<T>(key: Request): Promise<T | null> {
+  const cache = getEdgeCache();
+  if (!cache) return null;
+  try {
+    const hit = await cache.match(key);
+    if (!hit) return null;
+    return await hit.json() as T;
+  } catch {
+    return null;
+  }
+}
+
+async function writeEdgeCache(key: Request, value: unknown, maxAge: number): Promise<void> {
+  const cache = getEdgeCache();
+  if (!cache) return;
+  try {
+    await cache.put(key, new Response(JSON.stringify(value), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': `public, max-age=${maxAge}`,
+      },
+    }));
+  } catch {
+    // Cache writes are best-effort; ignore failures.
+  }
+}
+
+const CAR_PARK_STATIC_TTL = 86400; // static data changes rarely: cache 1 day
+
+type CarParkStatic = {
+  carParkName: { "zh-TW": string, en: string },
+  telephone: string,
+  location: { latitude: number, longitude: number },
+  description: string,
+  address: string,
+  imageURL?: string,
+};
+
 const loadedCities = new Set<City>();
 async function loadMockCarParkData(city: City) {
   if (loadedCities.has(city)) return
+
+  // L2: shared edge cache (survives isolate recycling, cross-instance).
+  const cacheKey = edgeCacheKey('static', city);
+  const cached = await readEdgeCache<[string, CarParkStatic][]>(cacheKey);
+  if (cached) {
+    for (const [id, value] of cached) {
+      carParkData.set(id, value);
+    }
+    loadedCities.add(city);
+    return;
+  }
 
   console.log(`Loading mock car park data for ${city}...`);
 
@@ -79,8 +146,10 @@ async function loadMockCarParkData(city: City) {
   const data = (await response.json()).CarParks;
   loadedCities.add(city);
 
+  const entries: [string, CarParkStatic][] = [];
   for (const carPark of data) {
-    carParkData.set(`${city}-${carPark.CarParkID}`, {
+    const id = `${city}-${carPark.CarParkID}`;
+    const value: CarParkStatic = {
       carParkName: {
         "zh-TW": carPark.CarParkName.Zh_tw,
         en: carPark.CarParkName.En,
@@ -93,8 +162,12 @@ async function loadMockCarParkData(city: City) {
       },
       address: carPark.Address || '',
       imageURL: (carPark.ImageURLs || [])[0],
-    });
+    };
+    carParkData.set(id, value);
+    entries.push([id, value]);
   }
+
+  await writeEdgeCache(cacheKey, entries, CAR_PARK_STATIC_TTL);
 }
 
 function getMockCarParkData(city: City, id: string) {
@@ -117,12 +190,25 @@ const carParkCache = new Map<City, {
   }[]
 }>()
 
-async function getAvailableCarParks(city: City) {
+const AVAILABILITY_TTL = 60; // seconds; live data refreshes ~1 min
+
+type AvailabilityValues = NonNullable<ReturnType<typeof carParkCache.get>>['values'];
+
+async function getAvailableCarParks(city: City): Promise<AvailabilityValues> {
+  // L1: in-memory (fastest, same isolate).
   if (carParkCache.has(city)) {
     const cache = carParkCache.get(city)!;
     if (cache.expiredAt > Date.now()) {
       return cache.values;
     }
+  }
+
+  // L2: shared edge cache (cross-isolate). Cloudflare evicts it after max-age.
+  const cacheKey = edgeCacheKey('availability', city);
+  const cached = await readEdgeCache<AvailabilityValues>(cacheKey);
+  if (cached) {
+    carParkCache.set(city, { expiredAt: Date.now() + AVAILABILITY_TTL * 1000, values: cached });
+    return cached;
   }
 
   console.log(`Fetching parking availability for ${city} from TDX API...`);
@@ -134,24 +220,26 @@ async function getAvailableCarParks(city: City) {
     },
   })
 
-  const values = (await response.json()).ParkingAvailabilities;
-  carParkCache.set(city, {
-    expiredAt: Date.now() + 60000, // Cache for 1 minutes
-    values: values.map((lot: any) => ({
-      CarParkID: lot.CarParkID,
-      CarParkName: {
-        Zh_tw: lot.CarParkName.Zh_tw,
-        En: lot.CarParkName.En,
-      },
-      Availabilities: lot.Availabilities.map((avail: any) => ({
-        SpaceType: avail.SpaceType,
-        NumberOfSpaces: avail.NumberOfSpaces,
-        AvailableSpaces: avail.AvailableSpaces,
-      })),
+  const values = (await response.json()).ParkingAvailabilities.map((lot: any) => ({
+    CarParkID: lot.CarParkID,
+    CarParkName: {
+      Zh_tw: lot.CarParkName.Zh_tw,
+      En: lot.CarParkName.En,
+    },
+    Availabilities: lot.Availabilities.map((avail: any) => ({
+      SpaceType: avail.SpaceType,
+      NumberOfSpaces: avail.NumberOfSpaces,
+      AvailableSpaces: avail.AvailableSpaces,
     })),
-  });
+  }));
 
-  return carParkCache.get(city)!.values;
+  carParkCache.set(city, {
+    expiredAt: Date.now() + AVAILABILITY_TTL * 1000,
+    values,
+  });
+  await writeEdgeCache(cacheKey, values, AVAILABILITY_TTL);
+
+  return values;
 
 }
 
@@ -231,6 +319,11 @@ export default async function handler(req: NextRequest) {
     return Response.json({
       success: true,
       data: result,
+    }, {
+      headers: {
+        // Edge-cache the full response briefly; allow stale serving while revalidating.
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+      },
     });
 
   } catch (error) {

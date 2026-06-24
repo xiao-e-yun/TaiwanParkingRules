@@ -17,7 +17,7 @@
     "clsx": "^2.1.1",
     "i18next": "^25.7.2",
     "lucide-react": "^0.513.0",
-    "next": "15.3.9",
+    "next": "15.5.19",
     "next-i18next": "^15.4.3",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
@@ -36,5 +36,14 @@
     "typescript": "^5.9.3",
     "wrangler": "^4.104.0"
   },
-  "packageManager": "pnpm@9.4.0+sha512.f549b8a52c9d2b8536762f99c0722205efc5af913e77835dbccc3b0b0b2ca9e7dc8022b78062c17291c48e88749c70ce88eb5a74f1fa8c4bf5e18bb46c8bd83a"
+  "packageManager": "pnpm@9.4.0+sha512.f549b8a52c9d2b8536762f99c0722205efc5af913e77835dbccc3b0b0b2ca9e7dc8022b78062c17291c48e88749c70ce88eb5a74f1fa8c4bf5e18bb46c8bd83a",
+  "pnpm": {
+    "overrides": {
+      "undici": ">=6.27.0",
+      "ws": ">=8.21.0",
+      "postcss": ">=8.4.31",
+      "esbuild": ">=0.25.0",
+      "cookie": ">=0.7.0"
+    }
+  }
 }

@@ -1,7 +1,9 @@
-import type {NextApiRequest, NextApiResponse} from 'next';
+import type {NextRequest} from 'next/server';
 import {City, ParkingSearchSchema} from '@/lib/schemas';
-import {env} from 'process';
-import _ from 'lodash';
+
+export const config = {
+  runtime: 'edge',
+};
 
 // Calculate distance between two coordinates (Haversine formula)
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -45,8 +47,8 @@ async function getAccessToken():Promise<string> {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: new URLSearchParams({
-      'client_id': env.TDX_CLIENT_ID || '',
-      'client_secret': env.TDX_CLIENT_SECRET || '',
+      'client_id': process.env.TDX_CLIENT_ID || '',
+      'client_secret': process.env.TDX_CLIENT_SECRET || '',
       'grant_type': 'client_credentials',
     }),
   })
@@ -153,25 +155,26 @@ async function getAvailableCarParks(city: City) {
 
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextRequest) {
   if (req.method !== 'GET') {
-    return res.status(405).json({error: 'Method not allowed'});
+    return Response.json({error: 'Method not allowed'}, {status: 405});
   }
+
+  const query = new URL(req.url).searchParams;
 
   try {
 
-    const data = await getAvailableCarParks(req.query.city as City);
+    const data = await getAvailableCarParks(query.get('city') as City);
 
+    const latitude = query.get('latitude');
+    const longitude = query.get('longitude');
     const params = ParkingSearchSchema.parse({
-      city: req.query.city as string,
-      parkingType: req.query.parkingType as string,
-      availability: req.query.availability as string,
-      location: req.query.latitude && req.query.longitude ? {
-        latitude: parseFloat(req.query.latitude as string),
-        longitude: parseFloat(req.query.longitude as string),
+      city: query.get('city') as string,
+      parkingType: query.get('parkingType') as string,
+      availability: query.get('availability') as string,
+      location: latitude && longitude ? {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
       } : undefined,
     });
 
@@ -190,7 +193,7 @@ export default async function handler(
     }
 
     await loadMockCarParkData(params.city);
-    const result = _.chain(data)
+    const result = data
       .filter((lot) => {
         return lot.Availabilities.some(avail => {
           const spaceType = spaceTypeMapping[params.parkingType];
@@ -223,19 +226,18 @@ export default async function handler(
         }
         // otherwise sort by available spaces
         return lotB.availableSpaces - lotA.availableSpaces;
-      })
-      .value();
+      });
 
-    res.status(200).json({
+    return Response.json({
       success: true,
       data: result,
     });
 
   } catch (error) {
     console.error('Search API error:', error);
-    res.status(400).json({
+    return Response.json({
       success: false,
       error: error instanceof Error ? error.message : 'Invalid search parameters'
-    });
+    }, {status: 400});
   }
 }

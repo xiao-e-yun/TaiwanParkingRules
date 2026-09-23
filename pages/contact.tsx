@@ -145,9 +145,9 @@ const ContactPage: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-2">
                 {([
-                  ["張瑞賢", UserRoundCog, "xiao-e-yun"],
-                  ["林于廷", UserRoundPen, "Yuting7071"],
-                  ["楊竣永", UserRoundSearch, "yong7533"]
+                  ["小惡運", UserRoundCog, "xiao-e-yun"],
+                  ["Yuting", UserRoundPen, "Yuting7071"],
+                  ["Yong", UserRoundSearch, "yong7533"]
                 ] as const).map(([name, Icon, profile], index) => {
                   return (
                     <a href={`https://github.com/${profile}`} target="_blank" rel="noopener noreferrer" className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">

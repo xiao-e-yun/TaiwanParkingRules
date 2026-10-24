@@ -33,6 +33,8 @@ const carParkData = new Map() as Map<string, {
   imageURL?: string,
 }>
 
+class UpstreamError extends Error {}
+
 let expiredAt = 0;
 let accessToken: string | null = null;
 async function getAccessToken():Promise<string> {
@@ -55,11 +57,27 @@ async function getAccessToken():Promise<string> {
   const data = await (response).json()
 
   if (!data.access_token) {
-    throw new Error('Failed to get access token from TDX');
+    throw new UpstreamError('Failed to get access token from TDX');
   }
 
   expiredAt = now + (data.expires_in * 1000) - 60000; // 1 minute before expiration
   return accessToken = data.access_token;
+}
+
+// GET a TDX API endpoint, surfacing upstream failures (e.g. 429 rate limit)
+// instead of letting a missing field crash later.
+async function fetchTDX(path: string): Promise<any> {
+  const token = await getAccessToken();
+  const response = await fetch(`https://tdx.transportdata.tw/api/basic/v1/Parking/OffStreet/${path}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+    },
+  });
+  if (!response.ok) {
+    throw new UpstreamError(`TDX API request failed (${response.status})`);
+  }
+  return response.json();
 }
 
 
@@ -136,23 +154,16 @@ async function loadMockCarParkData(city: City) {
 
   console.log(`Loading mock car park data for ${city}...`);
 
-  const token = await getAccessToken();
-  const response = await fetch(`https://tdx.transportdata.tw/api/basic/v1/Parking/OffStreet/CarPark/City/${city}?&%24format=JSON`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json',
-    },
-  })
-  const data = (await response.json()).CarParks;
-  loadedCities.add(city);
+  const data = (await fetchTDX(`CarPark/City/${city}?%24format=JSON`)).CarParks ?? [];
 
   const entries: [string, CarParkStatic][] = [];
   for (const carPark of data) {
+    if (!carPark.CarParkPosition) continue;
     const id = `${city}-${carPark.CarParkID}`;
     const value: CarParkStatic = {
       carParkName: {
-        "zh-TW": carPark.CarParkName.Zh_tw,
-        en: carPark.CarParkName.En,
+        "zh-TW": carPark.CarParkName?.Zh_tw || '',
+        en: carPark.CarParkName?.En || '',
       },
       telephone: carPark.Telephone || carPark.EmergencyPhone || '',
       description: carPark.Description || '',
@@ -166,6 +177,7 @@ async function loadMockCarParkData(city: City) {
     carParkData.set(id, value);
     entries.push([id, value]);
   }
+  loadedCities.add(city);
 
   await writeEdgeCache(cacheKey, entries, CAR_PARK_STATIC_TTL);
 }
@@ -212,21 +224,16 @@ async function getAvailableCarParks(city: City): Promise<AvailabilityValues> {
   }
 
   console.log(`Fetching parking availability for ${city} from TDX API...`);
-  const token = await getAccessToken();
-  const response = await fetch("https://tdx.transportdata.tw/api/basic/v1/Parking/OffStreet/ParkingAvailability/City/" + city + "?%24format=JSON", {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json',
-    },
-  })
+  const data = await fetchTDX(`ParkingAvailability/City/${city}?%24format=JSON`);
 
-  const values = (await response.json()).ParkingAvailabilities.map((lot: any) => ({
+  // Some lots (e.g. Taipei 916, 932) omit `Availabilities` entirely.
+  const values = (data.ParkingAvailabilities ?? []).map((lot: any) => ({
     CarParkID: lot.CarParkID,
     CarParkName: {
-      Zh_tw: lot.CarParkName.Zh_tw,
-      En: lot.CarParkName.En,
+      Zh_tw: lot.CarParkName?.Zh_tw || '',
+      En: lot.CarParkName?.En || '',
     },
-    Availabilities: lot.Availabilities.map((avail: any) => ({
+    Availabilities: (lot.Availabilities ?? []).map((avail: any) => ({
       SpaceType: avail.SpaceType,
       NumberOfSpaces: avail.NumberOfSpaces,
       AvailableSpaces: avail.AvailableSpaces,
@@ -251,9 +258,6 @@ export default async function handler(req: NextRequest) {
   const query = new URL(req.url).searchParams;
 
   try {
-
-    const data = await getAvailableCarParks(query.get('city') as City);
-
     const latitude = query.get('latitude');
     const longitude = query.get('longitude');
     const params = ParkingSearchSchema.parse({
@@ -266,6 +270,7 @@ export default async function handler(req: NextRequest) {
       } : undefined,
     });
 
+    const data = await getAvailableCarParks(params.city);
 
     const spaceTypeMapping = {
       "Car": 1,
@@ -331,6 +336,6 @@ export default async function handler(req: NextRequest) {
     return Response.json({
       success: false,
       error: error instanceof Error ? error.message : 'Invalid search parameters'
-    }, {status: 400});
+    }, {status: error instanceof UpstreamError ? 502 : 400});
   }
 }
